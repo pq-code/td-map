@@ -48,10 +48,14 @@ export default function useTMapLoader() {
     // 匹配地图类型
     let layers: any = []
 
+    // 添加地图层
     plugins?.forEach((e: string) => {
       layers.push(
         new TileLayer({
+          title: '天地图矢量图层',
+          className: 'blueLayer',//增加className属性
           source: new olSource.XYZ({
+            wrapX: false,
             url: `${typeMapping[e]}${key}`,
           })
         })
@@ -78,38 +82,65 @@ export default function useTMapLoader() {
   // 获取map对象
   const setMap = (map: any) => {
     Omap = map
-    //创建矢量层用来装后续添加的图形
-
   }
 
   // 添加点
   const setMarker = (drop: object) => {
-    const styles = [
-      new Style({
-        image: drop.content
-      }),
-    ];
+    try {
+      const styles = [
+        new Style({
+          image: drop.content
+        }),
+      ];
+      // 创建矢量对象
+      let feature = new Feature({
+        geometry: drop.position,
+      });
+      // 创建矢量源
+      let source = new VectorSource({ wrapX: false });
+      // 把要素集合添加到源 addFeatures
+      source.addFeature(feature);
+      // 创建矢量层
+      let vector = new VectorLayer({
+        source: source,
+        style: styles,
+        id: `marker${mapId}`,
+      });
+      // 把源添加到地图
+      Omap.addLayer(vector);
+      console.log(Omap)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  // 添加线
+  const setPolygon = (polygon: object) => {
     // 创建矢量对象
-    let feature = new Feature({
-      geometry: drop.position,
-    });
-    // 创建矢量源
+    let feature = new Feature({ geometry: polygon.path })
     let source = new VectorSource({ wrapX: false });
     // 把要素集合添加到源 addFeatures
     source.addFeature(feature);
     // 创建矢量层
     let vector = new VectorLayer({
       source: source,
-      style: styles,
-      id: `marker${mapId}`,
+      style: new Style({
+        fill: new Fill({
+          color: 'rgba(255, 255, 255, 1)',
+        }),
+        stroke: new Stroke({
+          color: polygon.strokeColor,
+          width: polygon.strokeWeight,
+        }),
+        image: new Circle({
+          radius: 7,
+          fill: new Fill({
+            color: '#ffcc33',
+          }),
+        }),
+      }),
+      id: `polygon${mapId}`,
     });
-    // 把源添加到地图
     Omap.addLayer(vector);
-    console.log(Omap)
-  }
-
-  const setPolygon = () => {
-
   }
 
   return {
