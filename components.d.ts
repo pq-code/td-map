@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     GdMap: typeof import('./src/components/map/gd/gd-map.vue')['default']
+    Popup: typeof import('./src/components/map/td-ol/components/popup.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TdMap: typeof import('./src/components/map/td/td-map.vue')['default']

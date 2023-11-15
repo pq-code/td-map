@@ -1,10 +1,12 @@
-import { ref } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { buildUUID } from "@/utils/index";
 
 import 'ol/ol.css'
-import { Map, View, Feature } from 'ol'
+import { Map, View, Feature, Overlay } from 'ol'
 import * as olSource from 'ol/source';
 // import TileLayer from 'ol/layer/Tile';
+
+import { Polygon, MultiPolygon } from "ol/geom"
 
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import { XYZ, Vector as VectorSource } from "ol/source";
@@ -143,12 +145,60 @@ export default function useTMapLoader() {
     Omap.addLayer(vector);
   }
 
+  // 添加信息窗口
+  const setInfoWindow = (el: object) => {
+    const popup = new Overlay({
+      element: el, //绑定 Overlay 对象和 DOM 对象的
+      autoPan: true, // 定义弹出窗口在边缘点击时候可能不完整 设置自动平移效果
+      offset: [-110, -180],//偏移量，使得弹出框显示在坐标点正上方
+      autoPanAnimation: {
+        duration: 250 //自动平移效果的动画时间 9毫秒
+      }
+    });
+    Omap.addOverlay(popup);
+  }
+
+  // 绘制行政区域
+  const setAdministrativeArea = (polygon) => {
+    let feature = new Feature({
+      type: 'polygon', geometry: new MultiPolygon(polygon.geometry.coordinates)
+    })
+    // let source = new VectorSource({ wrapX: false });
+
+    feature.setStyle(new Style({
+      stroke: new Stroke({
+        width: 2,
+
+        color: [255, 255, 0, 0.8]
+      }),
+      fill: new Fill({
+        color: [248, 172, 166, 0.2]
+      })
+    }))
+    let polygonLayer = new VectorLayer({
+      source: new VectorSource({
+        features: [feature]
+      })
+    })
+    Omap.addLayer(polygonLayer)
+  }
+
   return {
     tdOLoad,
     setMap,
     setMarker,
-    setPolygon
+    setPolygon,
+    setInfoWindow,
+    setAdministrativeArea
   }
 }
 
+onMounted(() => {
+  // Omap.on('singleclick', function (evt) {
+  //   console.log(evt)
+  // })
+})
 
+onBeforeUnmount(() => {
+
+});
