@@ -11,7 +11,7 @@ import { LineString, Point } from "ol/geom";
 import { Style, Fill, Stroke, Circle, Icon } from "ol/style";
 
 import { lhJson } from "./hooks/json";
-let map = ref();
+let map: any = {};
 const {
   tdOLoad,
   setMarker,
@@ -32,10 +32,10 @@ onMounted(() => {
     target: `${mapId.value}_content`,
     plugins: ["vec", "cva"],
     center: [121.131229, 28.845441],
-    zoom: 11,
+    zoom: 10,
   }).then((Omap: any) => {
-    map.value = new Map(Omap);
-    setMap(map.value);
+    map = new Map(Omap);
+    setMap(map);
     // 添加点
     batchSetMarker([
       [121.131229, 28.845441],
@@ -56,32 +56,29 @@ onMounted(() => {
     // 点击弹出框
     addWindos();
 
-    map.value.on("singleclick", (e) => {
+    map.on("singleclick", (e) => {
       // 判断是否点击在点上
-      let feature = map.value.forEachFeatureAtPixel(
-        e.pixel,
-        (feature) => feature
-      );
+      let feature = map.forEachFeatureAtPixel(e.pixel, (feature) => feature);
       if (feature) {
         shopPopupShow.value = true;
         // 设置弹窗位置
         let coordinates = feature.getGeometry().getCoordinates();
-        console.log("popupRef.value", popupRef.value, coordinates, map.value);
+        console.log("popupRef.value", popupRef.value, coordinates, map);
         windowPoint.setPosition(coordinates);
       } else {
         shopPopupShow.value = false;
       }
 
-      var pixel = map.value.getEventPixel(e.originalEvent);
+      var pixel = map.getEventPixel(e.originalEvent);
       console.log("pixel", pixel);
       console.log("feature", feature);
     });
     // 鼠标变手
-    map.value.on("pointermove", (e) => {
-      if (map.value.hasFeatureAtPixel(e.pixel)) {
-        map.value.getViewport().style.cursor = "pointer";
+    map.on("pointermove", (e) => {
+      if (map.hasFeatureAtPixel(e.pixel)) {
+        map.getViewport().style.cursor = "pointer";
       } else {
-        map.value.getViewport().style.cursor = "inherit";
+        map.getViewport().style.cursor = "inherit";
       }
     });
     drawAdministrativeArea(lhJson);
@@ -134,7 +131,7 @@ const addWindos = () => {
     offset: [-140, -390],
   });
 
-  map.value.addOverlay(windowPoint);
+  map.addOverlay(windowPoint);
 };
 
 // 绘制行政区域
