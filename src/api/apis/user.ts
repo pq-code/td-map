@@ -68,3 +68,9 @@ export const getChatRecord = (params: any) => {
 export const deleteChatRecord = (params: any) => {
   return http.post('api/users/deleteChatRecord', params)
 }
+
+
+
+export const upFile = (params: any) => {
+  return http.post('api/upFile/file', params)
+}

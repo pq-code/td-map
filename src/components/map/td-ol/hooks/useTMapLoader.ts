@@ -9,10 +9,10 @@ import * as olSource from 'ol/source';
 import { Polygon, MultiPolygon } from "ol/geom"
 
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import { XYZ, Vector as VectorSource } from "ol/source";
+import { XYZ, Vector as VectorSource, Cluster } from "ol/source";
 import * as olProj from "ol/proj";
 import { Point } from "ol/geom";
-import { Style, Fill, Stroke, Circle, Icon } from "ol/style";
+import { Style, Fill, Stroke, Circle, Icon, Text } from "ol/style";
 
 const mapId = ref(buildUUID());
 interface options {
@@ -87,30 +87,69 @@ export default function useTMapLoader() {
   }
 
   // 添加点
-  const setMarker = (drop: object) => {
+  const setMarker = (drop: Array) => {
     try {
-      const styles = [
-        new Style({
-          image: drop.content
-        }),
-      ];
+      let features: any = []
+      drop.forEach((e, i) => {
+        console.log('2222', e)
+        let feature = new Feature({
+          type: 'Point',
+          id: e.id || `clusterMarker${i}`,
+          geometry: e.position,
+          style: new Style({
+            image: e.content
+          })
+        });
+        features[i] = feature
+      })
       // 创建矢量对象
-      let feature = new Feature({
-        geometry: drop.position,
-      });
+      console.log(features)
       // 创建矢量源
-      let source = new VectorSource({ wrapX: false });
+      let source = new VectorSource({ wrapX: false, features });
+      let clusterStrategy = new Cluster({
+        distance: parseInt(40, 10),
+        minDistance: 10,
+        source: source
+      })
       // 把要素集合添加到源 addFeatures
-      source.addFeature(feature);
+      // source.addFeature(feature);
       // 创建矢量层
       let vector = new VectorLayer({
-        source: source,
-        style: styles,
+        source: clusterStrategy,
         id: `marker${mapId}`,
+        zIndex: 300,
+        style: (feature) => {
+          console.log('打印样式', feature, feature.get('features'))
+          let size = feature.get('features').length || 1;
+          let style
+          if (size > 1) {
+            style = new Style({
+              image: new Circle({
+                radius: 20,
+                stroke: new Stroke({
+                  color: '#fff'
+                }),
+                fill: new Fill({
+                  color: '#3399CC'
+                })
+              }),
+              text: new Text({
+                text: size.toString(),
+                fill: new Fill({
+                  color: '#fff'
+                })
+              })
+            });
+            return style;
+          } else {
+            console.log('1111', feature, feature.values_.features[0].values_.style)
+            return feature.values_.features[0].values_.style
+          }
+        },
       });
       // 把源添加到地图
       Omap.addLayer(vector);
-      console.log(Omap)
+      console.log('vector', vector)
     } catch (err) {
       console.log(err)
     }
@@ -176,6 +215,7 @@ export default function useTMapLoader() {
       })
     }))
     let polygonLayer = new VectorLayer({
+      zIndex: 100,
       source: new VectorSource({
         features: [feature]
       })

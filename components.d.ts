@@ -7,6 +7,10 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    ElButton: typeof import('element-plus/es')['ElButton']
+    ElDialog: typeof import('element-plus/es')['ElDialog']
+    ElIcon: typeof import('element-plus/es')['ElIcon']
+    ElUpload: typeof import('element-plus/es')['ElUpload']
     GdMap: typeof import('./src/components/map/gd/gd-map.vue')['default']
     Popup: typeof import('./src/components/map/td-ol/components/popup.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

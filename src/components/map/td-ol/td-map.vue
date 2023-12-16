@@ -59,14 +59,21 @@ onMounted(() => {
     map.on("singleclick", (e) => {
       // 判断是否点击在点上
       let feature = map.forEachFeatureAtPixel(e.pixel, (feature) => feature);
-      if (feature) {
-        shopPopupShow.value = true;
+      if (feature && feature.getProperties().type !== "polygon") {
         // 设置弹窗位置
-        let coordinates = feature.getGeometry().getCoordinates();
-        console.log("popupRef.value", popupRef.value, coordinates, map);
-        windowPoint.setPosition(coordinates);
+        console.log("--------", feature.get("features")?.length);
+        if (feature.get("features")?.length > 1) {
+          map.getView().animate({
+            center: feature.getGeometry().getCoordinates(),
+            zoom: 13,
+          });
+        } else {
+          let coordinates = feature.getGeometry().getCoordinates();
+          console.log("popupRef.value", popupRef.value, coordinates, map);
+          windowPoint.setPosition(coordinates);
+        }
       } else {
-        shopPopupShow.value = false;
+        windowPoint.setPosition(void 0);
       }
 
       var pixel = map.getEventPixel(e.originalEvent);
@@ -87,8 +94,10 @@ onMounted(() => {
 
 // 添加mark
 const batchSetMarker = (drop: Array<Array<number>> | Array<object>) => {
+  let a = [];
   for (let item of drop) {
-    setMarker({
+    console.log("new Point", item);
+    a.push({
       position: new Point(item),
       content: new Icon({
         // src: "https://a.amap.com/lbs/static/img/doc/doc_1678970777168_d2b5c.png",
@@ -97,6 +106,7 @@ const batchSetMarker = (drop: Array<Array<number>> | Array<object>) => {
       }),
     });
   }
+  setMarker(a);
 };
 
 // 添加多边形
@@ -144,7 +154,7 @@ const button = () => {
 };
 </script>
 <template>
-  <div ref="popupRef" class="popup" v-show="shopPopupShow">
+  <div ref="popupRef" class="popup">
     <div
       style="
         background-image: url(&quot;https://wzpm-platform.oss-cn-hangzhou.aliyuncs.com/collaboration-platform-pc/prod/largeScreen-202311101540/static/img/map-dialog-bg.02e07273.png&quot;);
@@ -255,15 +265,6 @@ const button = () => {
 }
 .popup {
   position: absolute;
-  // width: 200px;
-  // // height: 160px;
-
-  // z-index: 400;
-  // text-align: center;
-  // line-height: 40px;
-  // opacity: 0.8;
-  // color: #000000;
-  // background-color: #ffffff;
 
   background-size: 100% 100%;
   width: 264px;
